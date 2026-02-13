@@ -43,4 +43,4 @@ The extension uses Chrome's `declarativeNetRequest` API (Manifest V3) to interce
 
 ## License
 
-MIT
+This project is released into the public domain under [The Unlicense](https://unlicense.org/). You can do whatever you want with it.
