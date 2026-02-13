@@ -1,0 +1,77 @@
+/* ── Reset & Base ── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background: #1a1a2e;
+  color: #e0e0e0;
+}
+
+.container {
+  text-align: center;
+  max-width: 480px;
+  padding: 40px 24px;
+}
+
+/* ── Icon ── */
+.icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+  line-height: 1;
+}
+
+/* ── Heading ── */
+h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+
+/* ── Quote ── */
+.quote {
+  font-size: 18px;
+  font-style: italic;
+  color: #a0a0c0;
+  line-height: 1.6;
+  margin-bottom: 32px;
+}
+
+/* ── Blocked Site Info ── */
+.blocked-site {
+  font-size: 14px;
+  color: #e94560;
+  margin-bottom: 32px;
+  font-weight: 500;
+}
+
+/* ── Go Back Button ── */
+.go-back-btn {
+  display: inline-block;
+  padding: 12px 32px;
+  border: 2px solid #2d2d4a;
+  border-radius: 8px;
+  background: transparent;
+  color: #e0e0e0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.go-back-btn:hover {
+  border-color: #e94560;
+  color: #ffffff;
+  background: rgba(233, 69, 96, 0.1);
+}
