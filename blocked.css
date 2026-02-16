@@ -35,17 +35,89 @@ h1 {
   font-size: 36px;
   font-weight: 700;
   color: #1a1a1a;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   letter-spacing: -0.5px;
 }
 
-/* ── Quote ── */
-.quote {
-  font-size: 18px;
-  font-style: italic;
-  color: #6b7280;
-  line-height: 1.6;
+/* ── Timer Section ── */
+.timer-section {
   margin-bottom: 32px;
+}
+
+.timer-mode {
+  font-size: 16px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.timer-mode.work {
+  color: #e94560;
+}
+
+.timer-mode.break {
+  color: #10b981;
+}
+
+.timer-mode.paused {
+  color: #f59e0b;
+}
+
+.timer-display {
+  font-size: 72px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 24px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px;
+}
+
+.timer-controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+}
+
+.timer-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border: 2px solid #d1d5db;
+  border-radius: 8px;
+  background: transparent;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.timer-btn:hover {
+  transform: translateY(-1px);
+}
+
+.timer-btn.primary {
+  background: #e94560;
+  border-color: #e94560;
+  color: #ffffff;
+}
+
+.timer-btn.primary:hover {
+  background: #d13651;
+  border-color: #d13651;
+}
+
+.timer-btn.secondary {
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+
+.timer-btn.secondary:hover {
+  border-color: #9ca3af;
+  color: #4b5563;
 }
 
 /* ── Blocked Site Info ── */
@@ -88,8 +160,54 @@ h1 {
     color: #ffffff;
   }
 
-  .quote {
+  .timer-mode {
     color: #a0a0c0;
+  }
+
+  .timer-mode.work {
+    color: #ff6b85;
+  }
+
+  .timer-mode.break {
+    color: #34d399;
+  }
+
+  .timer-mode.paused {
+    color: #fbbf24;
+  }
+
+  .timer-display {
+    color: #ffffff;
+  }
+
+  .timer-btn {
+    border-color: #2d2d4a;
+    color: #e0e0e0;
+  }
+
+  .timer-btn:hover {
+    border-color: #3d3d5a;
+  }
+
+  .timer-btn.primary {
+    background: #e94560;
+    border-color: #e94560;
+    color: #ffffff;
+  }
+
+  .timer-btn.primary:hover {
+    background: #d13651;
+    border-color: #d13651;
+  }
+
+  .timer-btn.secondary {
+    border-color: #2d2d4a;
+    color: #a0a0c0;
+  }
+
+  .timer-btn.secondary:hover {
+    border-color: #3d3d5a;
+    color: #e0e0e0;
   }
 
   .go-back-btn {

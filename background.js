@@ -120,3 +120,219 @@ chrome.storage.sync.get({ blockedSites: [] })
   .catch((error) => {
     console.error('[Website Blocker] Error on startup:', error);
   });
+
+/**
+ * ============================================================================
+ * POMODORO TIMER FUNCTIONALITY
+ * ============================================================================
+ */
+
+const WORK_DURATION = 1500; // 25 minutes
+const BREAK_DURATION = 300; // 5 minutes
+const TIMER_ALARM_NAME = 'pomodoroTick';
+
+/**
+ * Initialize timer state
+ */
+async function initTimerState() {
+  try {
+    const data = await chrome.storage.local.get('pomodoroState');
+    if (!data.pomodoroState) {
+      await chrome.storage.local.set({
+        pomodoroState: {
+          mode: 'idle',
+          timeRemaining: WORK_DURATION,
+          workDuration: WORK_DURATION,
+          breakDuration: BREAK_DURATION,
+          lastUpdate: Date.now()
+        }
+      });
+    }
+  } catch (error) {
+    console.error('[Timer] Error initializing state:', error);
+  }
+}
+
+/**
+ * Get current timer state
+ */
+async function getTimerState() {
+  const data = await chrome.storage.local.get('pomodoroState');
+  return data.pomodoroState || {
+    mode: 'idle',
+    timeRemaining: WORK_DURATION,
+    workDuration: WORK_DURATION,
+    breakDuration: BREAK_DURATION,
+    lastUpdate: Date.now()
+  };
+}
+
+/**
+ * Update timer state
+ */
+async function updateTimerState(updates) {
+  const currentState = await getTimerState();
+  const newState = {
+    ...currentState,
+    ...updates,
+    lastUpdate: Date.now()
+  };
+  await chrome.storage.local.set({ pomodoroState: newState });
+  return newState;
+}
+
+/**
+ * Start the timer
+ */
+async function startTimer() {
+  const state = await getTimerState();
+  
+  // If idle, start a new work session
+  if (state.mode === 'idle') {
+    await updateTimerState({
+      mode: 'work',
+      timeRemaining: state.workDuration
+    });
+  } else if (state.mode === 'work-paused') {
+    // Resume work session
+    await updateTimerState({ mode: 'work' });
+  } else if (state.mode === 'break-paused') {
+    // Resume break
+    await updateTimerState({ mode: 'break' });
+  }
+  
+  // Create alarm for ticking
+  await chrome.alarms.create(TIMER_ALARM_NAME, {
+    delayInMinutes: 0,
+    periodInMinutes: 1 / 60 // 1 second
+  });
+  
+  console.log('[Timer] Started');
+}
+
+/**
+ * Pause the timer
+ */
+async function pauseTimer() {
+  const state = await getTimerState();
+  
+  if (state.mode === 'work') {
+    await updateTimerState({ mode: 'work-paused' });
+  } else if (state.mode === 'break') {
+    await updateTimerState({ mode: 'break-paused' });
+  }
+  
+  // Clear the alarm
+  await chrome.alarms.clear(TIMER_ALARM_NAME);
+  console.log('[Timer] Paused');
+}
+
+/**
+ * Reset the timer
+ */
+async function resetTimer() {
+  await chrome.alarms.clear(TIMER_ALARM_NAME);
+  await updateTimerState({
+    mode: 'idle',
+    timeRemaining: WORK_DURATION
+  });
+  console.log('[Timer] Reset');
+}
+
+/**
+ * Transition between work and break modes
+ */
+async function transitionMode(currentState) {
+  if (currentState.mode === 'work') {
+    // Work session complete, start break
+    await updateTimerState({
+      mode: 'break',
+      timeRemaining: currentState.breakDuration
+    });
+    console.log('[Timer] Transitioning to break');
+  } else if (currentState.mode === 'break') {
+    // Break complete, start new work session
+    await updateTimerState({
+      mode: 'work',
+      timeRemaining: currentState.workDuration
+    });
+    console.log('[Timer] Transitioning to work');
+  }
+}
+
+/**
+ * Handle timer tick
+ */
+async function handleTimerTick(alarm) {
+  if (alarm.name !== TIMER_ALARM_NAME) return;
+  
+  try {
+    const state = await getTimerState();
+    
+    // Only tick if timer is running
+    if (state.mode !== 'work' && state.mode !== 'break') {
+      await chrome.alarms.clear(TIMER_ALARM_NAME);
+      return;
+    }
+    
+    // Decrement time
+    const newTime = Math.max(0, state.timeRemaining - 1);
+    
+    if (newTime === 0) {
+      // Time's up, transition modes
+      await transitionMode(state);
+    } else {
+      // Update time remaining
+      await updateTimerState({ timeRemaining: newTime });
+    }
+  } catch (error) {
+    console.error('[Timer] Error in tick handler:', error);
+  }
+}
+
+/**
+ * Handle timer commands from blocked page
+ */
+function handleTimerCommand(message, sender, sendResponse) {
+  if (!message.action) return;
+  
+  switch (message.action) {
+    case 'start':
+      startTimer()
+        .then(() => sendResponse({ success: true }))
+        .catch((error) => {
+          console.error('[Timer] Error starting:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true; // Keep channel open for async response
+      
+    case 'pause':
+      pauseTimer()
+        .then(() => sendResponse({ success: true }))
+        .catch((error) => {
+          console.error('[Timer] Error pausing:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true;
+      
+    case 'reset':
+      resetTimer()
+        .then(() => sendResponse({ success: true }))
+        .catch((error) => {
+          console.error('[Timer] Error resetting:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true;
+  }
+}
+
+// Initialize timer state on startup
+initTimerState().catch((error) => {
+  console.error('[Timer] Error during initialization:', error);
+});
+
+// Listen for timer commands
+chrome.runtime.onMessage.addListener(handleTimerCommand);
+
+// Listen for timer ticks
+chrome.alarms.onAlarm.addListener(handleTimerTick);

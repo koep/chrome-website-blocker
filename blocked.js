@@ -1,25 +1,121 @@
 /**
  * Blocked page script for Website Blocker.
  *
- * Displays a motivational quote and blocked site information.
+ * Displays a Pomodoro timer to help users stay focused.
  */
 
-const quotes = [
-  "The secret of getting ahead is getting started.",
-  "Focus on being productive instead of busy.",
-  "It's not about having time. It's about making time.",
-  "Don't watch the clock; do what it does. Keep going.",
-  "Your future self will thank you.",
-  "Small disciplines repeated with consistency lead to great achievements.",
-  "Discipline is choosing between what you want now and what you want most.",
-  "You don't have to be extreme, just consistent.",
-  "The best time to start was yesterday. The next best time is now.",
-  "What you do today can improve all your tomorrows."
-];
+// Timer constants
+const WORK_DURATION = 1500; // 25 minutes in seconds
+const BREAK_DURATION = 300; // 5 minutes in seconds
 
-// Show a random quote
-const quoteEl = document.getElementById("quote");
-quoteEl.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+// DOM elements
+const timerModeEl = document.getElementById("timer-mode");
+const timerDisplayEl = document.getElementById("timer-display");
+const startBtn = document.getElementById("start-btn");
+const pauseBtn = document.getElementById("pause-btn");
+const resetBtn = document.getElementById("reset-btn");
+
+/**
+ * Format seconds as MM:SS
+ */
+function formatTime(seconds) {
+  const mins = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+
+/**
+ * Update the timer display based on current state
+ */
+function updateTimerDisplay(state) {
+  if (!state || !state.pomodoroState) {
+    // Default idle state
+    timerModeEl.textContent = "Ready to Focus";
+    timerDisplayEl.textContent = formatTime(WORK_DURATION);
+    startBtn.style.display = "inline-block";
+    pauseBtn.style.display = "none";
+    return;
+  }
+
+  const { mode, timeRemaining } = state.pomodoroState;
+  
+  // Update mode text and display styling
+  switch (mode) {
+    case 'work':
+      timerModeEl.textContent = "Work Session";
+      timerModeEl.className = "timer-mode work";
+      startBtn.style.display = "none";
+      pauseBtn.style.display = "inline-block";
+      break;
+    case 'break':
+      timerModeEl.textContent = "Break Time";
+      timerModeEl.className = "timer-mode break";
+      startBtn.style.display = "none";
+      pauseBtn.style.display = "inline-block";
+      break;
+    case 'work-paused':
+      timerModeEl.textContent = "Work Session (Paused)";
+      timerModeEl.className = "timer-mode paused";
+      startBtn.style.display = "inline-block";
+      pauseBtn.style.display = "none";
+      break;
+    case 'break-paused':
+      timerModeEl.textContent = "Break Time (Paused)";
+      timerModeEl.className = "timer-mode break paused";
+      startBtn.style.display = "inline-block";
+      pauseBtn.style.display = "none";
+      break;
+    case 'idle':
+    default:
+      timerModeEl.textContent = "Ready to Focus";
+      timerModeEl.className = "timer-mode";
+      startBtn.style.display = "inline-block";
+      pauseBtn.style.display = "none";
+      break;
+  }
+  
+  // Update time display
+  timerDisplayEl.textContent = formatTime(timeRemaining);
+}
+
+/**
+ * Send a command to the background script
+ */
+function sendTimerCommand(command) {
+  chrome.runtime.sendMessage({ action: command }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('[Timer] Error sending command:', chrome.runtime.lastError);
+    }
+  });
+}
+
+/**
+ * Initialize timer from storage
+ */
+async function initTimer() {
+  try {
+    const data = await chrome.storage.local.get('pomodoroState');
+    updateTimerDisplay(data);
+  } catch (error) {
+    console.error('[Timer] Error initializing:', error);
+    updateTimerDisplay(null);
+  }
+}
+
+// Button event listeners
+startBtn.addEventListener("click", () => sendTimerCommand('start'));
+pauseBtn.addEventListener("click", () => sendTimerCommand('pause'));
+resetBtn.addEventListener("click", () => sendTimerCommand('reset'));
+
+// Listen for storage changes to update UI
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.pomodoroState) {
+    updateTimerDisplay({ pomodoroState: changes.pomodoroState.newValue });
+  }
+});
+
+// Initialize on page load
+initTimer();
 
 // Show which site was blocked
 const params = new URLSearchParams(window.location.search);

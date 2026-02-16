@@ -8,9 +8,20 @@
 </head>
 <body>
   <div class="container">
-    <div class="icon">&#x1F6D1;</div>
+    <div class="icon">&#x1F345;</div>
     <h1>Stay Focused</h1>
-    <p id="quote" class="quote"></p>
+    
+    <!-- Timer Display -->
+    <div class="timer-section">
+      <div class="timer-mode" id="timer-mode">Ready to Focus</div>
+      <div class="timer-display" id="timer-display">25:00</div>
+      <div class="timer-controls">
+        <button id="start-btn" class="timer-btn primary">Start</button>
+        <button id="pause-btn" class="timer-btn" style="display:none">Pause</button>
+        <button id="reset-btn" class="timer-btn secondary">Reset</button>
+      </div>
+    </div>
+    
     <p id="blocked-site" class="blocked-site"></p>
     <button id="go-back" class="go-back-btn">Go Back</button>
   </div>
