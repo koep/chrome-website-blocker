@@ -11,7 +11,6 @@ const BREAK_DURATION = 300; // 5 minutes in seconds
 
 // Music constants
 const DEFAULT_VOLUME = 50;
-const LOFI_VIDEO_ID = 'jfKfPfyJRdk'; // Lofi Girl 24/7 stream
 
 // DOM elements
 const timerModeEl = document.getElementById("timer-mode");
@@ -24,7 +23,6 @@ const resetBtn = document.getElementById("reset-btn");
 const volumeSlider = document.getElementById("volume-slider");
 const volumeDisplay = document.getElementById("volume-display");
 const musicError = document.getElementById("music-error");
-const youtubeIframe = document.getElementById("youtube-player");
 const musicStatus = document.getElementById("music-status");
 
 // Music state
@@ -32,40 +30,143 @@ let currentTimerMode = 'idle';
 let currentVolume = DEFAULT_VOLUME;
 
 /**
- * Initialize YouTube iframe with embedded player
+ * Initialize Web Audio API for ambient music generation
  */
-function initYouTubePlayer() {
+function initAudioPlayer() {
   try {
-    // Build YouTube embed URL with API control enabled
-    // Setting mute=0 to ensure it's not muted by default
-    const embedUrl = `https://www.youtube.com/embed/${LOFI_VIDEO_ID}?enablejsapi=1&autoplay=0&controls=0&disablekb=1&fs=0&modestbranding=1&playsinline=1&rel=0&showinfo=0&loop=1&playlist=${LOFI_VIDEO_ID}&mute=0`;
-    youtubeIframe.src = embedUrl;
+    // Create audio context
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioContext = new AudioContext();
     
-    // Wait for iframe to load
-    youtubeIframe.addEventListener('load', () => {
-      console.log('[Music] Iframe loaded');
+    // Create master gain node
+    let masterGain = audioContext.createGain();
+    masterGain.connect(audioContext.destination);
+    masterGain.gain.value = 0; // Start muted
+    
+    let isPlaying = false;
+    let melodyInterval = null;
+    let currentNotes = [];
+    
+    // Lofi chord progressions (frequencies in Hz)
+    const chords = [
+      [261.63, 329.63, 392.00], // C major
+      [293.66, 369.99, 440.00], // D minor
+      [246.94, 311.13, 369.99], // G major
+      [220.00, 277.18, 329.63]  // A minor
+    ];
+    
+    let currentChordIndex = 0;
+    
+    // Play a single note with envelope
+    function playNote(frequency, duration, startTime) {
+      const osc = audioContext.createOscillator();
+      const noteGain = audioContext.createGain();
+      const filter = audioContext.createBiquadFilter();
       
-      // Load initial volume from storage
-      chrome.storage.local.get('pomodoroState', (data) => {
-        if (data.pomodoroState && data.pomodoroState.musicVolume !== undefined) {
-          currentVolume = data.pomodoroState.musicVolume;
-          volumeSlider.value = currentVolume;
-          volumeDisplay.textContent = `${currentVolume}%`;
-        }
-        
-        // Check if timer is already in work mode
-        if (data.pomodoroState && data.pomodoroState.mode === 'work') {
-          currentTimerMode = 'work';
-          // Start music after iframe loads (give it extra time to initialize)
-          setTimeout(() => startMusic(), 2000);
-        }
+      osc.type = 'sine';
+      osc.frequency.value = frequency + (Math.random() * 0.5 - 0.25); // Slight detune
+      
+      // Low-pass filter for warmth
+      filter.type = 'lowpass';
+      filter.frequency.value = 1000 + Math.random() * 500;
+      filter.Q.value = 1;
+      
+      // ADSR envelope for smooth sound
+      noteGain.gain.value = 0;
+      noteGain.gain.setTargetAtTime(0.08, startTime, 0.02); // Attack
+      noteGain.gain.setTargetAtTime(0.05, startTime + 0.1, 0.1); // Decay to sustain
+      noteGain.gain.setTargetAtTime(0, startTime + duration - 0.1, 0.1); // Release
+      
+      osc.connect(filter);
+      filter.connect(noteGain);
+      noteGain.connect(masterGain);
+      
+      osc.start(startTime);
+      osc.stop(startTime + duration);
+      
+      return osc;
+    }
+    
+    // Create a gentle melody pattern
+    function playMelodyPattern() {
+      if (!isPlaying) return;
+      
+      const now = audioContext.currentTime;
+      const chord = chords[currentChordIndex];
+      
+      // Play notes with rhythm (not all at once)
+      chord.forEach((freq, index) => {
+        const startTime = now + index * 0.15; // Stagger notes
+        const duration = 2.0 + Math.random() * 0.5;
+        playNote(freq, duration, startTime);
       });
+      
+      // Occasionally play higher melody note
+      if (Math.random() > 0.4) {
+        const melodyFreq = chord[Math.floor(Math.random() * chord.length)] * 2;
+        playNote(melodyFreq, 1.5, now + 0.5);
+      }
+      
+      // Move to next chord
+      currentChordIndex = (currentChordIndex + 1) % chords.length;
+    }
+    
+    // Load initial volume from storage
+    chrome.storage.local.get('pomodoroState', (data) => {
+      if (data.pomodoroState && data.pomodoroState.musicVolume !== undefined) {
+        currentVolume = data.pomodoroState.musicVolume;
+        volumeSlider.value = currentVolume;
+        volumeDisplay.textContent = `${currentVolume}%`;
+      }
+      
+      // Check if timer is already in work mode
+      if (data.pomodoroState && data.pomodoroState.mode === 'work') {
+        currentTimerMode = 'work';
+        setTimeout(() => startMusic(), 500);
+      }
     });
     
+    // Store references for control
+    window.audioPlayer = {
+      context: audioContext,
+      masterGain: masterGain,
+      start: function() {
+        if (audioContext.state === 'suspended') {
+          audioContext.resume();
+        }
+        isPlaying = true;
+        
+        // Fade in master volume
+        masterGain.gain.setTargetAtTime(currentVolume / 100, audioContext.currentTime, 0.5);
+        
+        // Start melody loop - play new notes every 3 seconds
+        playMelodyPattern(); // Play immediately
+        melodyInterval = setInterval(playMelodyPattern, 3000);
+      },
+      stop: function() {
+        isPlaying = false;
+        
+        // Fade out
+        masterGain.gain.setTargetAtTime(0, audioContext.currentTime, 0.5);
+        
+        // Stop melody loop
+        if (melodyInterval) {
+          clearInterval(melodyInterval);
+          melodyInterval = null;
+        }
+      },
+      setVolume: function(volume) {
+        if (isPlaying && masterGain.gain.value > 0) {
+          masterGain.gain.setTargetAtTime(volume / 100, audioContext.currentTime, 0.1);
+        }
+      }
+    };
+    
     hideMusicError();
+    console.log('[Music] Web Audio player initialized');
   } catch (error) {
-    console.error('[Music] Error initializing YouTube player:', error);
-    showMusicError('Music player failed to initialize.');
+    console.error('[Music] Error initializing audio player:', error);
+    showMusicError('Audio player failed to initialize.');
   }
 }
 
@@ -89,64 +190,38 @@ function hideMusicError() {
 }
 
 /**
- * Send command to YouTube iframe using postMessage
- */
-function sendYouTubeCommand(command, args = []) {
-  try {
-    if (youtubeIframe && youtubeIframe.contentWindow) {
-      const message = JSON.stringify({
-        event: 'command',
-        func: command,
-        args: args
-      });
-      youtubeIframe.contentWindow.postMessage(message, '*');
-      console.log('[Music] Sent command:', command, args);
-    }
-  } catch (error) {
-    console.error('[Music] Error sending YouTube command:', error);
-  }
-}
-
-/**
  * Start playing music
  */
 function startMusic() {
-  // Unmute first (in case it was muted)
-  sendYouTubeCommand('unMute');
-  
-  // Set volume
-  setTimeout(() => {
-    sendYouTubeCommand('setVolume', [currentVolume]);
-  }, 100);
-  
-  // Play video
-  setTimeout(() => {
-    sendYouTubeCommand('playVideo');
-  }, 200);
-  
-  // Update status
-  if (musicStatus) {
-    musicStatus.textContent = 'Playing';
-    musicStatus.classList.add('playing');
+  if (window.audioPlayer) {
+    window.audioPlayer.start();
+    
+    // Update status
+    if (musicStatus) {
+      musicStatus.textContent = 'Playing';
+      musicStatus.classList.add('playing');
+    }
+    
+    console.log('[Music] Started playing at volume', currentVolume);
+    hideMusicError();
   }
-  
-  console.log('[Music] Started playing at volume', currentVolume);
-  hideMusicError();
 }
 
 /**
  * Stop playing music
  */
 function stopMusic() {
-  sendYouTubeCommand('pauseVideo');
-  
-  // Update status
-  if (musicStatus) {
-    musicStatus.textContent = 'Paused';
-    musicStatus.classList.remove('playing');
+  if (window.audioPlayer) {
+    window.audioPlayer.stop();
+    
+    // Update status
+    if (musicStatus) {
+      musicStatus.textContent = 'Paused';
+      musicStatus.classList.remove('playing');
+    }
+    
+    console.log('[Music] Stopped playing');
   }
-  
-  console.log('[Music] Stopped playing');
 }
 
 /**
@@ -156,8 +231,10 @@ function handleVolumeChange() {
   currentVolume = parseInt(volumeSlider.value, 10);
   volumeDisplay.textContent = `${currentVolume}%`;
   
-  // Update YouTube player volume
-  sendYouTubeCommand('setVolume', [currentVolume]);
+  // Update audio volume
+  if (window.audioPlayer) {
+    window.audioPlayer.setVolume(currentVolume);
+  }
   
   // Persist volume to storage
   chrome.storage.local.get('pomodoroState', (data) => {
@@ -290,8 +367,8 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // Initialize on page load
 initTimer();
 
-// Initialize YouTube player
-initYouTubePlayer();
+// Initialize Web Audio player for ambient music
+initAudioPlayer();
 
 // Show which site was blocked
 const params = new URLSearchParams(window.location.search);
