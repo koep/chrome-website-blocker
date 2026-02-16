@@ -144,9 +144,29 @@ async function initTimerState() {
           timeRemaining: WORK_DURATION,
           workDuration: WORK_DURATION,
           breakDuration: BREAK_DURATION,
+          musicEnabled: true,
+          musicVolume: 50,
           lastUpdate: Date.now()
         }
       });
+    } else {
+      // Ensure music properties exist for existing users
+      const state = data.pomodoroState;
+      let needsUpdate = false;
+      
+      if (state.musicEnabled === undefined) {
+        state.musicEnabled = true;
+        needsUpdate = true;
+      }
+      
+      if (state.musicVolume === undefined) {
+        state.musicVolume = 50;
+        needsUpdate = true;
+      }
+      
+      if (needsUpdate) {
+        await chrome.storage.local.set({ pomodoroState: state });
+      }
     }
   } catch (error) {
     console.error('[Timer] Error initializing state:', error);
