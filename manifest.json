@@ -5,7 +5,8 @@
   "description": "A minimalistic website blocker to help you stay focused and productive.",
   "permissions": [
     "declarativeNetRequest",
-    "storage"
+    "storage",
+    "activeTab"
   ],
   "host_permissions": [
     "<all_urls>"

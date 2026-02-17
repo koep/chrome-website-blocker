@@ -170,10 +170,34 @@ form.addEventListener("submit", (e) => {
   input.focus();
 });
 
-// Load and render the list on popup open
+/**
+ * Get the current active tab's domain and populate the input field.
+ */
+async function prefillCurrentDomain() {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab && tab.url) {
+      const url = new URL(tab.url);
+      // Only prefill for http/https URLs (not chrome://, chrome-extension://, etc.)
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        const domain = normalizeDomain(url.hostname);
+        if (isValidDomain(domain)) {
+          input.value = domain;
+          input.select(); // Select the text so user can easily replace it
+        }
+      }
+    }
+  } catch (error) {
+    console.error('[Website Blocker] Error getting current tab:', error);
+    // Silently fail - user can still manually enter a domain
+  }
+}
+
+// Load and render the list on popup open, then prefill current domain
 chrome.storage.sync.get({ blockedSites: [] })
   .then((data) => {
     renderList(data.blockedSites);
+    return prefillCurrentDomain();
   })
   .catch((error) => {
     console.error('[Website Blocker] Error loading sites:', error);
