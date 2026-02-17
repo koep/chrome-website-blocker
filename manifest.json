@@ -1,13 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Website Blocker",
-  "version": "1.0.3",
+  "version": "1.0.0",
   "description": "A minimalistic website blocker to help you stay focused and productive.",
   "permissions": [
     "declarativeNetRequest",
-    "storage",
-    "activeTab",
-    "alarms"
+    "storage"
   ],
   "host_permissions": [
     "<all_urls>"

@@ -5,7 +5,6 @@
   box-sizing: border-box;
 }
 
-/* ── Light Mode (Default) ── */
 body {
   min-height: 100vh;
   display: flex;
@@ -13,8 +12,8 @@ body {
   justify-content: center;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
-  background: #f9fafb;
-  color: #1a1a1a;
+  background: #1a1a2e;
+  color: #e0e0e0;
 }
 
 .container {
@@ -34,206 +33,18 @@ body {
 h1 {
   font-size: 36px;
   font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 24px;
+  color: #ffffff;
+  margin-bottom: 16px;
   letter-spacing: -0.5px;
 }
 
-/* ── Timer Section ── */
-.timer-section {
+/* ── Quote ── */
+.quote {
+  font-size: 18px;
+  font-style: italic;
+  color: #a0a0c0;
+  line-height: 1.6;
   margin-bottom: 32px;
-}
-
-.timer-mode {
-  font-size: 16px;
-  font-weight: 600;
-  color: #6b7280;
-  margin-bottom: 12px;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-
-.timer-mode.work {
-  color: #e94560;
-}
-
-.timer-mode.break {
-  color: #10b981;
-}
-
-.timer-mode.paused {
-  color: #f59e0b;
-}
-
-.timer-display {
-  font-size: 72px;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: 24px;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -2px;
-}
-
-.timer-controls {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  align-items: center;
-}
-
-.timer-btn {
-  display: inline-block;
-  padding: 12px 24px;
-  border: 2px solid #d1d5db;
-  border-radius: 8px;
-  background: transparent;
-  color: #1a1a1a;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  letter-spacing: 0.3px;
-}
-
-.timer-btn:hover {
-  transform: translateY(-1px);
-}
-
-.timer-btn.primary {
-  background: #e94560;
-  border-color: #e94560;
-  color: #ffffff;
-}
-
-.timer-btn.primary:hover {
-  background: #d13651;
-  border-color: #d13651;
-}
-
-.timer-btn.secondary {
-  border-color: #d1d5db;
-  color: #6b7280;
-}
-
-.timer-btn.secondary:hover {
-  border-color: #9ca3af;
-  color: #4b5563;
-}
-
-/* ── Music Section ── */
-.music-section {
-  margin-bottom: 32px;
-  padding: 20px;
-  border: 2px solid #d1d5db;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.5);
-  transition: all 0.2s;
-}
-
-.music-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-bottom: 16px;
-}
-
-.music-icon {
-  font-size: 24px;
-  line-height: 1;
-}
-
-.music-label {
-  font-size: 16px;
-  font-weight: 600;
-  color: #6b7280;
-  letter-spacing: 0.3px;
-}
-
-.music-status {
-  font-size: 12px;
-  color: #9ca3af;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: rgba(156, 163, 175, 0.1);
-  margin-left: 4px;
-}
-
-.music-status.playing {
-  color: #10b981;
-  background: rgba(16, 185, 129, 0.1);
-}
-
-.volume-control {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  justify-content: center;
-}
-
-.volume-icon {
-  font-size: 20px;
-  line-height: 1;
-}
-
-#volume-slider {
-  flex: 1;
-  max-width: 200px;
-  height: 6px;
-  -webkit-appearance: none;
-  appearance: none;
-  background: #d1d5db;
-  border-radius: 3px;
-  outline: none;
-  cursor: pointer;
-}
-
-#volume-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #e94560;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-#volume-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-}
-
-#volume-slider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #e94560;
-  cursor: pointer;
-  border: none;
-  transition: all 0.2s;
-}
-
-#volume-slider::-moz-range-thumb:hover {
-  transform: scale(1.2);
-}
-
-#volume-display {
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
-  min-width: 40px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.music-error {
-  margin-top: 12px;
-  font-size: 13px;
-  color: #f59e0b;
-  text-align: center;
-  padding: 8px;
-  background: rgba(245, 158, 11, 0.1);
-  border-radius: 6px;
 }
 
 /* ── Blocked Site Info ── */
@@ -248,10 +59,10 @@ h1 {
 .go-back-btn {
   display: inline-block;
   padding: 12px 32px;
-  border: 2px solid #d1d5db;
+  border: 2px solid #2d2d4a;
   border-radius: 8px;
   background: transparent;
-  color: #1a1a1a;
+  color: #e0e0e0;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -261,117 +72,6 @@ h1 {
 
 .go-back-btn:hover {
   border-color: #e94560;
-  color: #e94560;
+  color: #ffffff;
   background: rgba(233, 69, 96, 0.1);
-}
-
-/* ── Dark Mode ── */
-@media (prefers-color-scheme: dark) {
-  body {
-    background: #1a1a2e;
-    color: #e0e0e0;
-  }
-
-  h1 {
-    color: #ffffff;
-  }
-
-  .timer-mode {
-    color: #a0a0c0;
-  }
-
-  .timer-mode.work {
-    color: #ff6b85;
-  }
-
-  .timer-mode.break {
-    color: #34d399;
-  }
-
-  .timer-mode.paused {
-    color: #fbbf24;
-  }
-
-  .timer-display {
-    color: #ffffff;
-  }
-
-  .timer-btn {
-    border-color: #2d2d4a;
-    color: #e0e0e0;
-  }
-
-  .timer-btn:hover {
-    border-color: #3d3d5a;
-  }
-
-  .timer-btn.primary {
-    background: #e94560;
-    border-color: #e94560;
-    color: #ffffff;
-  }
-
-  .timer-btn.primary:hover {
-    background: #d13651;
-    border-color: #d13651;
-  }
-
-  .timer-btn.secondary {
-    border-color: #2d2d4a;
-    color: #a0a0c0;
-  }
-
-  .timer-btn.secondary:hover {
-    border-color: #3d3d5a;
-    color: #e0e0e0;
-  }
-
-  .go-back-btn {
-    border-color: #2d2d4a;
-    color: #e0e0e0;
-  }
-
-  .go-back-btn:hover {
-    color: #ffffff;
-  }
-
-  .music-section {
-    border-color: #2d2d4a;
-    background: rgba(45, 45, 74, 0.3);
-  }
-
-  .music-label {
-    color: #a0a0c0;
-  }
-
-  .music-status {
-    color: #6b7280;
-    background: rgba(107, 114, 128, 0.1);
-  }
-
-  .music-status.playing {
-    color: #34d399;
-    background: rgba(52, 211, 153, 0.1);
-  }
-
-  #volume-slider {
-    background: #2d2d4a;
-  }
-
-  #volume-slider::-webkit-slider-thumb {
-    background: #ff6b85;
-  }
-
-  #volume-slider::-moz-range-thumb {
-    background: #ff6b85;
-  }
-
-  #volume-display {
-    color: #a0a0c0;
-  }
-
-  .music-error {
-    color: #fbbf24;
-    background: rgba(251, 191, 36, 0.1);
-  }
 }
