@@ -27,8 +27,38 @@ const site = params.get("site");
 const blockedSiteEl = document.getElementById("blocked-site");
 if (site) {
   blockedSiteEl.textContent = `${site} is blocked.`;
+  recordBlockStats(site);
 } else {
   blockedSiteEl.textContent = "This site is blocked.";
+}
+
+/**
+ * Record one block event for the given domain in chrome.storage.local.
+ * Stores daily counts per domain and prunes dates older than 30 days.
+ */
+function recordBlockStats(domain) {
+  if (!domain || typeof domain !== "string" || domain.trim() === "") return;
+  const today = new Date().toISOString().slice(0, 10);
+  const cutoff = new Date();
+  cutoff.setDate(cutoff.getDate() - 30);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+
+  chrome.storage.local.get({ blockStats: {} }, (data) => {
+    const stats = data.blockStats;
+    if (!stats[domain]) stats[domain] = {};
+    stats[domain][today] = (stats[domain][today] || 0) + 1;
+
+    // Prune dates older than 30 days (all domains)
+    for (const d of Object.keys(stats)) {
+      const dates = stats[d];
+      for (const dateKey of Object.keys(dates)) {
+        if (dateKey < cutoffStr) delete dates[dateKey];
+      }
+      if (Object.keys(dates).length === 0) delete stats[d];
+    }
+
+    chrome.storage.local.set({ blockStats: stats });
+  });
 }
 
 // Go Back button

@@ -151,3 +151,17 @@ h1 {
 .empty.hidden {
   display: none;
 }
+
+/* ── Stats link ── */
+.stats-link {
+  display: block;
+  margin-top: 14px;
+  font-size: 12px;
+  color: #6b6b8d;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.stats-link:hover {
+  color: #e94560;
+}

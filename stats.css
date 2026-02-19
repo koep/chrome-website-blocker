@@ -1,0 +1,185 @@
+/* ── Theme: dark (default) ── */
+:root {
+  --stats-bg: #1a1a2e;
+  --stats-text: #e0e0e0;
+  --stats-text-muted: #a0a0c0;
+  --stats-heading: #ffffff;
+  --stats-border: #2d2d4a;
+  --stats-row-bg: #16213e;
+  --stats-row-hover: #1a2745;
+  --stats-accent: #e94560;
+  --stats-accent-bg: rgba(233, 69, 96, 0.15);
+  --stats-scrollbar: #2d2d4a;
+  --stats-bar: #e94560;
+  --stats-bar-empty: #2d2d4a;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --stats-bg: #f5f5f7;
+    --stats-text: #1d1d1f;
+    --stats-text-muted: #6e6e73;
+    --stats-heading: #1d1d1f;
+    --stats-border: #d2d2d7;
+    --stats-row-bg: #ffffff;
+    --stats-row-hover: #e8e8ed;
+    --stats-accent: #c73652;
+    --stats-accent-bg: rgba(199, 54, 82, 0.12);
+    --stats-scrollbar: #d2d2d7;
+    --stats-bar: #c73652;
+    --stats-bar-empty: #d2d2d7;
+  }
+}
+
+/* ── Reset & Base ── */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background: var(--stats-bg);
+  color: var(--stats-text);
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+/* ── Header ── */
+h1 {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--stats-heading);
+  margin-bottom: 8px;
+  letter-spacing: 0.3px;
+}
+
+/* ── Summary cards ── */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: var(--stats-row-bg);
+  border: 1px solid var(--stats-border);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.stat-card .stat-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--stats-heading);
+  line-height: 1.2;
+}
+
+.stat-card .stat-label {
+  font-size: 12px;
+  color: var(--stats-text-muted);
+  font-weight: 500;
+}
+
+/* ── Table ── */
+.table-section {
+  margin-bottom: 28px;
+  overflow-x: auto;
+}
+
+#stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+#stats-table th,
+#stats-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--stats-border);
+}
+
+#stats-table th {
+  color: var(--stats-text-muted);
+  font-weight: 600;
+}
+
+#stats-table tbody tr {
+  background: var(--stats-row-bg);
+}
+
+#stats-table tbody tr:hover {
+  background: var(--stats-row-hover);
+}
+
+#stats-table tbody tr.top-domain {
+  border-left: 3px solid var(--stats-accent);
+}
+
+#stats-table td.domain {
+  color: var(--stats-text);
+}
+
+#stats-table td.count {
+  color: var(--stats-text-muted);
+  text-align: right;
+}
+
+/* Inline bar for Last 30 days column */
+#stats-table td.count-with-bar {
+  padding: 8px 12px;
+  min-width: 100px;
+}
+
+.cell-bar-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 24px;
+  width: 100%;
+}
+
+.cell-bar-wrap .cell-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--stats-accent-bg);
+  border-radius: 4px;
+  min-width: 4px;
+}
+
+.cell-bar-wrap .cell-count {
+  position: relative;
+  z-index: 1;
+  font-weight: 500;
+  padding: 0 6px;
+  color: var(--stats-text-muted);
+}
+
+/* ── No data ── */
+.no-data {
+  text-align: center;
+  color: var(--stats-text-muted);
+  font-size: 13px;
+  padding: 16px 0;
+}
+
+.no-data.hidden,
+.table-section.hidden {
+  display: none;
+}

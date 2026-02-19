@@ -170,6 +170,12 @@ form.addEventListener("submit", (e) => {
   input.focus();
 });
 
+// Open block statistics page in a new tab
+document.getElementById("stats-link").addEventListener("click", (e) => {
+  e.preventDefault();
+  chrome.tabs.create({ url: chrome.runtime.getURL("stats.html") });
+});
+
 /**
  * Get the current active tab's domain and populate the input field.
  */
