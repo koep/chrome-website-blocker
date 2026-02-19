@@ -55,7 +55,14 @@ h1 {
   font-weight: 500;
 }
 
-/* ── Go Back Button ── */
+/* ── Buttons ── */
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
 .go-back-btn {
   display: inline-block;
   padding: 12px 32px;
@@ -74,4 +81,24 @@ h1 {
   border-color: #e94560;
   color: #ffffff;
   background: rgba(233, 69, 96, 0.1);
+}
+
+.five-more-btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border: 2px solid #2d2d4a;
+  border-radius: 8px;
+  background: transparent;
+  color: #a0a0c0;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.five-more-btn:hover {
+  border-color: #4a9c6d;
+  color: #ffffff;
+  background: rgba(74, 156, 109, 0.15);
 }

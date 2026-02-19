@@ -65,6 +65,36 @@ function buildRule(domain, ruleId) {
 }
 
 /**
+ * Get blockedSites minus any domain that is temporarily allowed (and not expired).
+ * Prunes expired entries from temporaryAllows and persists.
+ */
+async function getEffectiveBlockedSites() {
+  const [syncData, localData] = await Promise.all([
+    chrome.storage.sync.get({ blockedSites: [] }),
+    chrome.storage.local.get({ temporaryAllows: {} })
+  ]);
+  const blockedSites = syncData.blockedSites || [];
+  let temporaryAllows = localData.temporaryAllows || {};
+  const now = Date.now();
+
+  // Prune expired entries
+  const pruned = { ...temporaryAllows };
+  let changed = false;
+  for (const domain of Object.keys(pruned)) {
+    if (pruned[domain] <= now) {
+      delete pruned[domain];
+      changed = true;
+    }
+  }
+  if (changed) {
+    temporaryAllows = pruned;
+    await chrome.storage.local.set({ temporaryAllows });
+  }
+
+  return blockedSites.filter((domain) => !(temporaryAllows[domain] > now));
+}
+
+/**
  * Sync the declarativeNetRequest dynamic rules with the current blockedSites list.
  */
 async function syncRules(blockedSites) {
@@ -95,28 +125,104 @@ async function syncRules(blockedSites) {
   }
 }
 
+/**
+ * Schedule the "reblock" alarm for the soonest expiry in temporaryAllows.
+ */
+async function scheduleReblockAlarm() {
+  const data = await chrome.storage.local.get({ temporaryAllows: {} });
+  const temporaryAllows = data.temporaryAllows || {};
+  const now = Date.now();
+  let soonest = null;
+  for (const domain of Object.keys(temporaryAllows)) {
+    const expiry = temporaryAllows[domain];
+    if (expiry > now && (soonest === null || expiry < soonest)) {
+      soonest = expiry;
+    }
+  }
+  if (soonest !== null) {
+    await chrome.alarms.create("reblock", { when: soonest });
+  } else {
+    await chrome.alarms.clear("reblock");
+  }
+}
+
 // Listen for changes to storage and re-sync rules
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "sync" && changes.blockedSites) {
-    syncRules(changes.blockedSites.newValue || []).catch((error) => {
-      console.error('[Website Blocker] Error in storage change listener:', error);
-    });
+    getEffectiveBlockedSites()
+      .then(syncRules)
+      .catch((error) => {
+        console.error('[Website Blocker] Error in storage change listener:', error);
+      });
   }
 });
 
 // On install / update, sync rules from current storage
 chrome.runtime.onInstalled.addListener(async () => {
   try {
-    const data = await chrome.storage.sync.get({ blockedSites: [] });
-    await syncRules(data.blockedSites);
+    const effective = await getEffectiveBlockedSites();
+    await syncRules(effective);
   } catch (error) {
     console.error('[Website Blocker] Error on install:', error);
   }
 });
 
 // Also sync on service worker startup (covers browser restart)
-chrome.storage.sync.get({ blockedSites: [] })
-  .then((data) => syncRules(data.blockedSites))
+getEffectiveBlockedSites()
+  .then(syncRules)
   .catch((error) => {
     console.error('[Website Blocker] Error on startup:', error);
   });
+
+// Message from blocked page: allow this site for 5 minutes
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action !== "allowFiveMinutes" || typeof message.site !== "string") {
+    return;
+  }
+  const raw = message.site.trim().toLowerCase();
+  const domain = raw
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split(":")[0]
+    .split("/")[0]
+    .split("?")[0]
+    .split("#")[0];
+  if (!domain || domain.includes("/") || domain.includes(" ")) {
+    sendResponse({ ok: false, error: "invalid domain" });
+    return true;
+  }
+  (async () => {
+    try {
+      const data = await chrome.storage.local.get({ temporaryAllows: {} });
+      const temporaryAllows = data.temporaryAllows || {};
+      const expiry = Date.now() + 5 * 60 * 1000;
+      temporaryAllows[domain] = expiry;
+      await chrome.storage.local.set({ temporaryAllows });
+      await scheduleReblockAlarm();
+      const effective = await getEffectiveBlockedSites();
+      await syncRules(effective);
+      // Navigate from background so the request uses the updated rules
+      const tabId = sender.tab?.id;
+      if (tabId) {
+        await chrome.tabs.update(tabId, { url: "https://" + domain });
+      }
+      sendResponse({ ok: true, navigated: !!tabId });
+    } catch (error) {
+      console.error('[Website Blocker] Error allowing five minutes:', error);
+      sendResponse({ ok: false, error: String(error) });
+    }
+  })();
+  return true;
+});
+
+// Re-block when temporary allow expires
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== "reblock") return;
+  try {
+    const effective = await getEffectiveBlockedSites();
+    await syncRules(effective);
+    await scheduleReblockAlarm();
+  } catch (error) {
+    console.error('[Website Blocker] Error on reblock alarm:', error);
+  }
+});

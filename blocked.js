@@ -39,3 +39,29 @@ document.getElementById("go-back").addEventListener("click", () => {
     window.close();
   }
 });
+
+// Five more minutes button
+document.getElementById("five-more").addEventListener("click", () => {
+  if (!site) {
+    return;
+  }
+  const btn = document.getElementById("five-more");
+  btn.disabled = true;
+  btn.textContent = "…";
+  chrome.runtime.sendMessage({ action: "allowFiveMinutes", site }, (response) => {
+    if (chrome.runtime.lastError) {
+      btn.disabled = false;
+      btn.textContent = "Five more minutes";
+      return;
+    }
+    if (response && response.ok) {
+      // Background navigates the tab; fallback if it didn't (e.g. no sender.tab)
+      if (!response.navigated) {
+        window.location.href = "https://" + site;
+      }
+    } else {
+      btn.disabled = false;
+      btn.textContent = "Five more minutes";
+    }
+  });
+});
